@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// asciiBetweenCapsAndLowercase is the number of ASCII symols that separate the lowercase alphabet from the uppercase alphabet.
+const asciiBetweenCapsAndLowercase = 6
+
 func main() {
 	file, err := os.Open("./input.txt")
 	if err != nil {
@@ -27,28 +30,26 @@ func main() {
 	for _, line := range lines {
 		foundAt := map[rune]int{}
 		for index, item := range line {
-			if pos, ok := foundAt[item]; ok && sameCompartment(index, pos, len(line)) {
+			if pos, ok := foundAt[item]; ok && !sameCompartment(index, pos, len(line)) {
+				foundAt[item] = index
+
 				// Flip the character from upper->lower or vice-versa so we can use the ASCII value
-				var flipped string
+				var priority int
 				if lowered := strings.ToLower(string(item)); lowered != string(item) {
-					fmt.Printf("flipping %s -> %s\n", string(item), lowered)
-					flipped = lowered
+					flipped := lowered
+					asciiCode := int(flipped[0])
+					priority = int(asciiCode) - 64 - asciiBetweenCapsAndLowercase
 				} else {
-					fmt.Printf("flipping %s -> %s\n", string(item), strings.ToUpper(string(item)))
-					flipped = strings.ToUpper(string(item))
+					flipped := strings.ToUpper(string(item))
+					asciiCode := int(flipped[0])
+					priority = int(asciiCode) - 64
 				}
 
-				asciiCode := int(flipped[0])
-				priority := int(asciiCode) - 64
 				total += priority
-
-				// FIXME(alecmerdler): Seeing what the int value of each rune is...
-				fmt.Printf("%s - %s, %d, %d\n", line, string(item), priority, total)
-
 				break
+			} else {
+				foundAt[item] = index
 			}
-
-			foundAt[item] = index
 		}
 	}
 
